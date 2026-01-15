@@ -1,8 +1,8 @@
 from flask.views import MethodView
-from flask_smorest import Blueprint, abort
+from flask_smorest import Blueprint
 from models.product import Product
 from models.brand import Brand
-from schema import ProductSchema, BrandSchema
+from schema import ProductSchema
 
 blp = Blueprint("Search", __name__, description="Search endpoints")
 
@@ -10,8 +10,13 @@ blp = Blueprint("Search", __name__, description="Search endpoints")
 class Search(MethodView):
     @blp.response(200, ProductSchema(many=True))
     def get(self, query):
-        products = Product.query.filter(Product.name.ilike(f"%{query}%")).all()
-        brands = Brand.query.filter(Brand.name.ilike(f"%{query}%")).all()
+        products_by_name = Product.query.filter(Product.name.ilike(f"%{query}%")).all()
+        matching_brands = Brand.query.filter(Brand.name.ilike(f"%{query}%")).all()
 
-        # Combine results
-        return products + [b.products[0] for b in brands if b.products]
+        products_by_brand = []
+        for b in matching_brands:
+            products_by_brand.extend(b.products)
+
+        # remove duplicates by product id
+        all_products = {p.id: p for p in (products_by_name + products_by_brand)}
+        return list(all_products.values())

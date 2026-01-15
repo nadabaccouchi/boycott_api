@@ -1,43 +1,56 @@
 from flask.views import MethodView
 from flask_smorest import Blueprint, abort
+
 from models.product import Product
-from models.brand import Brand
-from db import db
-from schema import ProductSchema
+from models.brand_alternative import BrandAlternative
+from schema import BarcodeResultSchema
 
 blp = Blueprint("Barcode", __name__, description="Barcode lookup")
 
 @blp.route("/barcode/<string:barcode>")
 class BarcodeLookup(MethodView):
-    @blp.response(200, ProductSchema)
+    @blp.response(200, BarcodeResultSchema)
     def get(self, barcode):
-        # Check if the product exists in the database
+        # 1) Only search inside YOUR DB
         product = Product.query.filter_by(barcode=barcode).first()
-        if product:
-            return product
+        if not product:
+            abort(404, message="Barcode not found in dataset")
 
-        # If not found, query external API to check boycott status
-        data = check_boycott(barcode)
-        if not data:
-            abort(404, message="Product not found in boycott sources")
+        brand = product.brand
 
-        # If brand doesn't exist in DB, create a new one
-        brand = Brand.query.filter_by(name=data["brand"]).first()
-        if not brand:
-            brand = Brand(name=data["brand"], boycott_status=True)
-            db.session.add(brand)
+        # 2) If not boycotted => no alternatives
+        if not brand.boycott_status:
+            return {
+                "barcode": product.barcode,
+                "product_name": product.name,
+                "brand": brand,
+                "alternatives": [],
+            }
 
-        # Create a new product with the information from the external API
-        product = Product(
-            name=data["name"],
-            barcode=barcode,
-            brand=brand
+        # 3) If boycotted => return alternative BRANDS
+        product_category_ids = [c.id for c in product.categories]
+
+        # Get category-specific alternatives first, then general ones (category_id = NULL)
+        q = BrandAlternative.query.filter(
+            BrandAlternative.boycotted_brand_id == brand.id
         )
-        db.session.add(product)
-        db.session.commit()
 
-        # Add alternatives for the product
-        alternatives = get_tunisian_alternatives(product)
-        product.alternatives = alternatives
+        if product_category_ids:
+            q = q.filter(
+                (BrandAlternative.category_id.in_(product_category_ids)) |
+                (BrandAlternative.category_id.is_(None))
+            )
+        else:
+            # If product has no category, only general alternatives
+            q = q.filter(BrandAlternative.category_id.is_(None))
 
-        return product
+        links = q.order_by(BrandAlternative.score.desc()).all()
+
+        alternatives = [link.alternative_brand for link in links]
+
+        return {
+            "barcode": product.barcode,
+            "product_name": product.name,
+            "brand": brand,
+            "alternatives": alternatives,
+        }

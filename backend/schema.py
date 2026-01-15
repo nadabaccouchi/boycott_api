@@ -1,28 +1,27 @@
 from marshmallow import Schema, fields
 
-class AlternativeSchema(Schema):
-    id = fields.Int()  # Added 'id' field
-    name = fields.Str()
-    website = fields.Str()
-    logo_url = fields.Str()
-
 class CategorySchema(Schema):
-    id = fields.Int()  # Added 'id' field
+    id = fields.Int()
     name = fields.Str()
     slug = fields.Str()
 
 class BrandSchema(Schema):
-    id = fields.Int()  # Added 'id' field
+    id = fields.Int()
     name = fields.Str()
-    website = fields.Str()
-    logo_url = fields.Str()
+    website = fields.Str(allow_none=True)
+    logo_url = fields.Str(allow_none=True)
     boycott_status = fields.Bool()
-    reason = fields.Str()
+    reason = fields.Str(allow_none=True)
 
 class ProductSchema(Schema):
-    id = fields.Int()  # Added 'id' field
+    id = fields.Int()
     name = fields.Str()
     barcode = fields.Str()
     brand = fields.Nested(BrandSchema)
     categories = fields.List(fields.Nested(CategorySchema))
-    alternatives = fields.List(fields.Nested(AlternativeSchema))
+
+class BarcodeResultSchema(Schema):
+    barcode = fields.Str()
+    product_name = fields.Str()
+    brand = fields.Nested(BrandSchema)
+    alternatives = fields.List(fields.Nested(BrandSchema))

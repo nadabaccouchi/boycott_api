@@ -1,4 +1,5 @@
 from db import db
+from models.product import product_category
 
 class Category(db.Model):
     __tablename__ = "categories"
@@ -7,5 +8,8 @@ class Category(db.Model):
     name = db.Column(db.String(100), nullable=False)
     slug = db.Column(db.String(100), unique=True, nullable=False)
 
-    # Reverse relationship to Product (many-to-many)
-    products = db.relationship("Product", secondary="product_category", backref="categories")
+    products = db.relationship(
+        "Product",
+        secondary=product_category,
+        back_populates="categories",
+    )

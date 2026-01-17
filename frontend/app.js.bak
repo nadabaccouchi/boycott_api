@@ -1,0 +1,223 @@
+const apiBase = window.location.origin;
+
+const loginForm = document.getElementById("login-form");
+const loginMessage = document.getElementById("login-message");
+const tokenPreview = document.getElementById("token-preview");
+
+const brandForm = document.getElementById("brand-form");
+const brandMessage = document.getElementById("brand-message");
+const brandResults = document.getElementById("brand-results");
+
+const productForm = document.getElementById("product-form");
+const productMessage = document.getElementById("product-message");
+const productResults = document.getElementById("product-results");
+
+const categoryForm = document.getElementById("category-form");
+const categoryMessage = document.getElementById("category-message");
+const categoryResults = document.getElementById("category-results");
+
+const categoryProductsForm = document.getElementById("category-products-form");
+const categoryProductsMessage = document.getElementById("category-products-message");
+const categoryProductsResults = document.getElementById("category-products-results");
+
+const barcodeForm = document.getElementById("barcode-form");
+const barcodeMessage = document.getElementById("barcode-message");
+const barcodeResult = document.getElementById("barcode-result");
+
+const statBrands = document.getElementById("stat-brands");
+const statProducts = document.getElementById("stat-products");
+const statCategories = document.getElementById("stat-categories");
+
+function setMessage(el, text, ok) {
+  if (!el) {
+    return;
+  }
+  el.textContent = text || "";
+  if (!text) {
+    return;
+  }
+  el.style.color = ok ? "#1c4d2e" : "#b00020";
+}
+
+function renderList(el, items, formatter) {
+  if (!el) {
+    return;
+  }
+  if (!items || items.length === 0) {
+    el.innerHTML = "<li>No results.</li>";
+    return;
+  }
+  el.innerHTML = items.map((item) => `<li>${formatter(item)}</li>`).join("");
+}
+
+function buildQuery(params) {
+  const search = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (value === undefined || value === null || value === "") {
+      return;
+    }
+    search.set(key, value);
+  });
+  const qs = search.toString();
+  return qs ? `?${qs}` : "";
+}
+
+async function fetchJson(path, options) {
+  const res = await fetch(`${apiBase}${path}`, options);
+  if (!res.ok) {
+    const msg = await res.json().catch(() => ({ message: "Request failed" }));
+    throw new Error(msg.message || "Request failed");
+  }
+  return res.json();
+}
+
+async function login(email, password) {
+  return fetchJson("/auth/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password }),
+  });
+}
+
+loginForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  setMessage(loginMessage, "", true);
+  const data = new FormData(loginForm);
+
+  try {
+    const result = await login(data.get("email"), data.get("password"));
+    const token = result.access_token || "-";
+    tokenPreview.textContent = token;
+    localStorage.setItem("boycott_token", token);
+    setMessage(loginMessage, "Login successful.", true);
+  } catch (error) {
+    tokenPreview.textContent = "-";
+    setMessage(loginMessage, error.message, false);
+  }
+});
+
+brandForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  setMessage(brandMessage, "", true);
+  const data = new FormData(brandForm);
+  const query = buildQuery({
+    search: data.get("search"),
+    boycott_status: data.get("boycott_status"),
+    category_id: data.get("category_id"),
+    page: data.get("page"),
+    limit: data.get("limit"),
+  });
+
+  try {
+    const results = await fetchJson(`/brands${query}`);
+    renderList(brandResults, results, (item) => {
+      const status = item.boycott_status ? "boycotted" : "not boycotted";
+      return `${item.name} (${status})`;
+    });
+    setMessage(brandMessage, `Found ${results.length} brand(s).`, true);
+  } catch (error) {
+    renderList(brandResults, [], () => "");
+    setMessage(brandMessage, error.message, false);
+  }
+});
+
+productForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  setMessage(productMessage, "", true);
+  const data = new FormData(productForm);
+  const query = buildQuery({
+    search: data.get("search"),
+    brand_id: data.get("brand_id"),
+    category_id: data.get("category_id"),
+    page: data.get("page"),
+    limit: data.get("limit"),
+  });
+
+  try {
+    const results = await fetchJson(`/products${query}`);
+    renderList(productResults, results, (item) => {
+      const brand = item.brand ? item.brand.name : "Unknown brand";
+      return `${item.name} - ${brand}`;
+    });
+    setMessage(productMessage, `Found ${results.length} product(s).`, true);
+  } catch (error) {
+    renderList(productResults, [], () => "");
+    setMessage(productMessage, error.message, false);
+  }
+});
+
+categoryForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  setMessage(categoryMessage, "", true);
+  try {
+    const results = await fetchJson("/categories");
+    renderList(categoryResults, results, (item) => `${item.name} (${item.slug})`);
+    setMessage(categoryMessage, `Loaded ${results.length} categories.`, true);
+  } catch (error) {
+    renderList(categoryResults, [], () => "");
+    setMessage(categoryMessage, error.message, false);
+  }
+});
+
+categoryProductsForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  setMessage(categoryProductsMessage, "", true);
+  const data = new FormData(categoryProductsForm);
+  const slug = data.get("slug");
+  if (!slug) {
+    setMessage(categoryProductsMessage, "Enter a category slug.", false);
+    return;
+  }
+
+  try {
+    const results = await fetchJson(`/categories/${slug}/products`);
+    renderList(categoryProductsResults, results, (item) => item.name);
+    setMessage(categoryProductsMessage, `Loaded ${results.length} products.`, true);
+  } catch (error) {
+    renderList(categoryProductsResults, [], () => "");
+    setMessage(categoryProductsMessage, error.message, false);
+  }
+});
+
+barcodeForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  setMessage(barcodeMessage, "", true);
+  const data = new FormData(barcodeForm);
+  const barcode = data.get("barcode");
+  if (!barcode) {
+    setMessage(barcodeMessage, "Enter a barcode.", false);
+    return;
+  }
+
+  try {
+    const result = await fetchJson(`/barcode/${barcode}`);
+    barcodeResult.textContent = JSON.stringify(result, null, 2);
+    setMessage(barcodeMessage, "Lookup complete.", true);
+  } catch (error) {
+    barcodeResult.textContent = "No lookup yet.";
+    setMessage(barcodeMessage, error.message, false);
+  }
+});
+
+async function refreshStats() {
+  try {
+    const [brands, products, categories] = await Promise.all([
+      fetchJson("/brands?limit=100"),
+      fetchJson("/products?limit=100"),
+      fetchJson("/categories"),
+    ]);
+    statBrands.textContent = brands.length;
+    statProducts.textContent = products.length;
+    statCategories.textContent = categories.length;
+  } catch (error) {
+    statBrands.textContent = "-";
+    statProducts.textContent = "-";
+    statCategories.textContent = "-";
+  }
+}
+
+document.getElementById("refresh-dashboard").addEventListener("click", () => {
+  refreshStats();
+});
+
+refreshStats();

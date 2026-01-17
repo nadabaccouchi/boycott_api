@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Boycott | Ethical Consumption Guide</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;630&family=Outfit:wght@500;700;800&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+    <header class="site-header">
+        <div class="container">
+            <a href="#home" class="logo">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"
+                    stroke-linecap="round" stroke-linejoin="round" style="color: var(--primary)">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                </svg>
+                Boycott.
+            </a>
+            <nav class="nav">
+                <a href="#home">Home</a>
+                <a href="#explorer">Explorer</a>
+                <a href="#reports" id="reports-link" style="display:none;">Reports</a>
+                <div id="auth-nav" style="display: flex; gap: 0.5rem;">
+                    <!-- Injected by JS -->
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <!-- Home Section -->
+        <section id="home" class="active">
+            <div class="container">
+                <div class="hero">
+                    <div
+                        style="display: inline-flex; align-items: center; gap: 0.5rem; background: var(--bg-card); padding: 0.5rem 1rem; border-radius: 99px; border: 1px solid var(--border); margin-bottom: 2rem; font-size: 0.9rem; font-weight: 600; color: var(--primary);">
+                        <span
+                            style="display: block; width: 8px; height: 8px; background: var(--primary); border-radius: 50%; animation: pulse 2s infinite;"></span>
+                        Join 10,000+ Ethical Consumers
+                    </div>
+                    <h1>Make Ethical Choices<br>With Confidence.</h1>
+                    <p>Identify brands with unethical practices instantly. Find sustainable, local, and ethical
+                        alternatives with our community-driven database.</p>
+                    <div style="display: flex; gap: 1rem; justify-content: center;">
+                        <a href="#explorer" class="btn btn-primary">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="11" cy="11" r="8" />
+                                <path d="m21 21-4.3-4.3" />
+                            </svg>
+                            Start Exploring
+                        </a>
+                        <a href="#register" class="btn btn-outline">Join Community</a>
+                    </div>
+                </div>
+
+                <div class="grid" style="margin-top: 4rem;">
+                    <div class="card" style="text-align: center;">
+                        <div style="font-size: 2.5rem; margin-bottom: 1rem;">🔍</div>
+                        <h3>Search & Filter</h3>
+                        <p>Browse by brand name, category, or boycott status. Transparent reasons provided for every
+                            entry.</p>
+                    </div>
+                    <div class="card" style="text-align: center;">
+                        <div style="font-size: 2.5rem; margin-bottom: 1rem;">📷</div>
+                        <h3>Barcode Scanner</h3>
+                        <p>Scan products in-store to instantly check their ethics and find recommended alternatives.</p>
+                    </div>
+                    <div class="card" style="text-align: center;">
+                        <div style="font-size: 2.5rem; margin-bottom: 1rem;">🤝</div>
+                        <h3>Community Driven</h3>
+                        <p>Contribute new data, report missing products, and help others consume more ethically.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Explorer/Search Section -->
+        <section id="explorer">
+            <div class="container">
+                <div style="text-align: center; margin-bottom: 3rem;">
+                    <h2 style="font-size: 3rem; margin-bottom: 1rem;">Database Explorer</h2>
+                    <p style="color: var(--text-muted);">Search our comprehensive list of brands and products.</p>
+                </div>
+
+                <div style="text-align: center;">
+                    <div class="tabs">
+                        <button class="btn" id="tab-brands" onclick="app.setSearchMode('brands')">Brands</button>
+                        <button class="btn btn-outline" id="tab-products"
+                            onclick="app.setSearchMode('products')">Products</button>
+                        <button class="btn btn-outline" id="tab-barcode"
+                            onclick="app.setSearchMode('barcode')">Barcode</button>
+                    </div>
+                </div>
+
+                <div class="search-bar"
+                    style="max-width: 900px; margin: 0 auto 4rem auto; display: flex; gap: 1rem; flex-wrap: wrap; background: var(--bg-card); padding: 1.5rem; border-radius: var(--radius-lg); border: 1px solid var(--border); box-shadow: var(--shadow-lg);">
+                    <div style="flex: 2; position: relative;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            style="position: absolute; left: 1rem; top: 1rem; color: var(--text-muted);">
+                            <circle cx="11" cy="11" r="8" />
+                            <path d="m21 21-4.3-4.3" />
+                        </svg>
+                        <input type="text" id="search-input" placeholder="Search brands..." style="padding-left: 3rem;">
+                    </div>
+
+                    <div id="filter-container" style="display: flex; gap: 1rem; flex: 2; flex-wrap: wrap;">
+                        <select id="category-filter" style="flex: 1; min-width: 150px;">
+                            <option value="">All Categories</option>
+                        </select>
+                        <div
+                            style="display: flex; align-items: center; gap: 0.75rem; background: var(--bg-body); padding: 0 1.25rem; border: 1px solid var(--border); border-radius: var(--radius-md); border-color: rgba(239, 68, 68, 0.2);">
+                            <input type="checkbox" id="boycott-filter"
+                                style="width: auto; accent-color: var(--danger);">
+                            <label for="boycott-filter"
+                                style="margin: 0; cursor: pointer; color: var(--danger);">Boycott Only</label>
+                        </div>
+                    </div>
+
+                    <button id="search-btn" class="btn btn-primary" style="display: none;">Lookup</button>
+                </div>
+
+                <div id="results-grid" class="grid">
+                    <!-- Cards injected here -->
+                </div>
+
+                <div id="barcode-result" style="display: none; padding: 2rem 0;">
+                    <!-- Barcode Specific Result Area -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Login Section -->
+        <section id="login">
+            <div class="container">
+                <div class="card" style="max-width: 450px; margin: 0 auto; text-align: center; padding: 3rem;">
+                    <h2 style="margin-bottom: 0.5rem;">Welcome Back</h2>
+                    <p style="color: var(--text-muted); margin-bottom: 2.5rem;">Sign in to contribute to the mission.
+                    </p>
+
+                    <form id="login-form">
+                        <div class="form-group">
+                            <label>Email Address</label>
+                            <input type="email" name="email" required placeholder="name@example.com">
+                        </div>
+                        <div class="form-group">
+                            <label>Password</label>
+                            <input type="password" name="password" required placeholder="••••••••">
+                        </div>
+                        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Sign
+                            In</button>
+                        <div id="login-message" class="message"></div>
+                        <p style="margin-top: 2rem; font-size: 0.9rem;">New here? <a href="#register"
+                                style="color: var(--primary); font-weight: 600;">Create an account</a></p>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <!-- Register Section -->
+        <section id="register">
+            <div class="container">
+                <div class="card" style="max-width: 450px; margin: 0 auto; text-align: center; padding: 3rem;">
+                    <h2 style="margin-bottom: 0.5rem;">Create Account</h2>
+                    <p style="color: var(--text-muted); margin-bottom: 2.5rem;">Join the movement for ethical
+                        consumption.</p>
+
+                    <form id="register-form">
+                        <div class="form-group">
+                            <label>Username</label>
+                            <input type="text" name="username" required placeholder="Pick a username">
+                        </div>
+                        <div class="form-group">
+                            <label>Email Address</label>
+                            <input type="email" name="email" required placeholder="name@example.com">
+                        </div>
+                        <div class="form-group">
+                            <label>Password</label>
+                            <input type="password" name="password" required placeholder="••••••••">
+                        </div>
+                        <button type="submit" class="btn btn-primary"
+                            style="width: 100%; margin-top: 1rem;">Register</button>
+                        <div id="register-message" class="message"></div>
+                        <p style="margin-top: 2rem; font-size: 0.9rem;">Already have an account? <a href="#login"
+                                style="color: var(--primary); font-weight: 600;">Sign in</a></p>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <!-- Reports Section -->
+        <section id="reports">
+            <div class="container">
+                <div style="text-align: center; margin-bottom: 3rem;">
+                    <h2 style="font-size: 3rem; margin-bottom: 1rem;">Community Intelligence</h2>
+                    <p style="color: var(--text-muted);">Help us maintain the world's most accurate ethical guide.</p>
+                </div>
+
+                <div class="grid" style="grid-template-columns: 1fr 2fr; align-items: start; gap: 3rem;">
+                    <div class="card">
+                        <h3 style="margin-bottom: 1.5rem;">Submit a Report</h3>
+                        <form id="report-form">
+                            <div class="form-group">
+                                <label>Barcode (Optional)</label>
+                                <input type="text" name="barcode" placeholder="e.g. 12345678">
+                            </div>
+                            <div class="form-group">
+                                <label>Product ID (Optional)</label>
+                                <input type="number" name="product_id" placeholder="Database ID if known">
+                            </div>
+                            <div class="form-group">
+                                <label>Reason / Insight</label>
+                                <textarea name="message" required
+                                    placeholder="Provide details on why this should be updated..." rows="4"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label>Evidence URL</label>
+                                <input type="url" name="evidence_url" placeholder="https://news-source.com/...">
+                            </div>
+                            <button type="submit" class="btn btn-primary" style="width: 100%;">Submit Report</button>
+                            <div id="report-message" class="message"></div>
+                        </form>
+                    </div>
+
+                    <div class="card">
+                        <h3 style="margin-bottom: 1.5rem;">Recent Activity</h3>
+                        <div id="reports-list" style="display: flex; flex-direction: column; gap: 1.5rem;">
+                            <p style="color: var(--text-muted);">Fetching latest reports...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Admin Dashboard -->
+        <section id="admin">
+            <div class="container">
+                <div
+                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3rem; flex-wrap: wrap; gap: 1rem;">
+                    <div>
+                        <h2 style="font-size: 2.5rem;">Command Center</h2>
+                        <p style="color: var(--text-muted);">Global system management and data moderation.</p>
+                    </div>
+                    <div style="display: flex; gap: 1rem;">
+                        <button class="btn btn-outline" onclick="app.openCategoryModal()">Manage Categories</button>
+                        <button class="btn btn-primary" onclick="app.openBrandModal()">+ Add New Brand</button>
+                    </div>
+                </div>
+
+                <div id="admin-stats" class="grid" style="margin-bottom: 4rem;">
+                    <!-- Stats cards injected here -->
+                </div>
+
+                <div class="card" style="border-left: 5px solid var(--primary); background: rgba(99, 102, 241, 0.05);">
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            style="color: var(--primary)">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                        </svg>
+                        <div>
+                            <h4 style="margin: 0;">Admin Mode Active</h4>
+                            <p style="margin: 0; font-size: 0.9rem; color: var(--text-muted);">You can Edit, Delete, and
+                                Moderate all data across the platform.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Brand Modal -->
+        <div id="brand-modal" class="modal">
+            <div class="modal-content">
+                <span class="close-modal">&times;</span>
+                <h2 style="margin-bottom: 1.5rem;">Add New Brand</h2>
+                <form id="admin-brand-form">
+                    <input type="hidden" name="id" id="brand-id">
+                    <div class="form-group">
+                        <label>Brand Name</label>
+                        <input type="text" name="name" id="brand-name" required placeholder="e.g. Acme Corp">
+                    </div>
+                    <div class="form-group">
+                        <label>Boycott Status</label>
+                        <select name="boycott_status" id="brand-status" required>
+                            <option value="false">Safe (Ethical/Sustainable)</option>
+                            <option value="true">Boycott (Unethical Practices)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Logo URL</label>
+                        <input type="url" name="logo_url" id="brand-logo" placeholder="https://...">
+                    </div>
+                    <div class="form-group">
+                        <label>Official Reason / Evidence</label>
+                        <textarea name="reason" id="brand-reason" rows="3"
+                            placeholder="Detail the reasons for this status..."></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Save
+                        Changes</button>
+                    <div id="brand-message" class="message"></div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Category Modal -->
+        <div id="category-modal" class="modal">
+            <div class="modal-content">
+                <span class="close-modal">&times;</span>
+                <h2 style="margin-bottom: 1.5rem;">Manage Categories</h2>
+                <form id="admin-category-form" style="margin-bottom: 2rem;">
+                    <div class="form-group">
+                        <label>Category Name</label>
+                        <input type="text" name="name" required placeholder="e.g. Personal Care">
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width: 100%;">Create Category</button>
+                    <div id="category-message" class="message"></div>
+                </form>
+
+                <div id="categories-manage-list" style="max-height: 250px; overflow-y: auto; padding-right: 0.5rem;">
+                    <!-- List of categories with delete buttons -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer style="margin-top: auto; padding: 4rem 0; border-top: 1px solid var(--border); background: var(--bg-card);">
+        <div class="container" style="text-align: center;">
+            <div class="logo" style="justify-content: center; margin-bottom: 1.5rem;">Boycott.</div>
+            <p style="color: var(--text-muted); max-width: 500px; margin: 0 auto 2rem auto;">Empowering consumers to
+                make choices that align with their values through transparency and community intelligence.</p>
+            <div
+                style="display: flex; justify-content: center; gap: 2rem; font-size: 0.9rem; color: var(--text-muted);">
+                <a href="#about">About Us</a>
+                <a href="#privacy">Privacy Policy</a>
+                <a href="#terms">Terms of Service</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="/static/js/api.js?v=4"></script>
+    <script src="/static/js/auth.js?v=4"></script>
+    <script src="/static/js/ui.js?v=4"></script>
+    <script src="/static/js/main.js?v=4"></script>
+    <style>
+        @keyframes pulse {
+            0% {
+                transform: scale(0.95);
+                box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.7);
+            }
+
+            70% {
+                transform: scale(1);
+                box-shadow: 0 0 0 6px rgba(99, 102, 241, 0);
+            }
+
+            100% {
+                transform: scale(0.95);
+                box-shadow: 0 0 0 0 rgba(99, 102, 241, 0);
+            }
+        }
+    </style>
+</body>
+
+</html>

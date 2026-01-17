@@ -2,7 +2,7 @@
 
 from flask.views import MethodView
 from flask_smorest import Blueprint, abort
-from flask import request
+from flask import g, request
 from sqlalchemy.exc import IntegrityError
 
 from db import db
@@ -18,12 +18,12 @@ blp = Blueprint("Reports", __name__, description="Reports endpoints")
 class ReportList(MethodView):
     @blp.response(200, ReportSchema(many=True))
     @blp.doc(security=[{"BearerAuth": []}])
+    @auth_module.login_required
     def get(self):
         """
         GET /reports
         Authenticated users only.
         """
-        auth_module.require_authenticated_user()
         status = request.args.get("status")
         query = Report.query
 
@@ -38,12 +38,13 @@ class ReportList(MethodView):
     @blp.arguments(ReportCreateSchema())
     @blp.doc(security=[{"BearerAuth": []}])
     @blp.response(201, ReportSchema())
+    @auth_module.login_required
     def post(self, data):
         """
         POST /reports
         Authenticated users only.
         """
-        user = auth_module.require_authenticated_user()
+        user = g.current_user
 
         product_id = data.get("product_id")
         barcode = data.get("barcode")
@@ -79,12 +80,13 @@ class ReportList(MethodView):
 class MyReports(MethodView):
     @blp.response(200, ReportSchema(many=True))
     @blp.doc(security=[{"BearerAuth": []}])
+    @auth_module.login_required
     def get(self):
         """
         GET /reports/mine
         Authenticated users only.
         """
-        user = auth_module.require_authenticated_user()
+        user = g.current_user
         reports = Report.query.filter_by(user_id=user.id).order_by(
             Report.created_at.desc()
         ).all()
@@ -95,12 +97,13 @@ class MyReports(MethodView):
 class ReportDetail(MethodView):
     @blp.response(200, ReportSchema())
     @blp.doc(security=[{"BearerAuth": []}])
+    @auth_module.login_required
     def get(self, report_id):
         """
         GET /reports/{id}
         Authenticated users only.
         """
-        user = auth_module.require_authenticated_user()
+        user = g.current_user
         report = Report.query.get(report_id)
         if not report:
             abort(404, message="Report not found.")
@@ -109,12 +112,12 @@ class ReportDetail(MethodView):
     @blp.arguments(ReportUpdateSchema())
     @blp.doc(security=[{"BearerAuth": []}])
     @blp.response(200, ReportSchema())
+    @auth_module.admin_required
     def put(self, data, report_id):
         """
         PUT /reports/{id}
         Admin only.
         """
-        admin = auth_module.require_admin()
         report = Report.query.get(report_id)
         if not report:
             abort(404, message="Report not found.")

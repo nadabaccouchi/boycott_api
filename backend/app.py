@@ -13,11 +13,11 @@ from models.brand import Brand
 from models.category import Category
 from models.brand_alternative import BrandAlternative
 
-from resources.barcode import blp as barcode_blp
-from resources.brands import blp as brands_blp
-from resources.categories import blp as categories_blp
-from resources.products import blp as products_blp
 from resources.auth import blp as auth_blp
+from resources.barcode import blp as barcode_blp
+from resources.categories import blp as categories_blp
+from resources.brands import blp as brands_blp
+from resources.products import blp as products_blp
 from resources.reports import blp as reports_blp
 # from resources.search import blp as search_blp  # (you said you'll delete it)
 
@@ -56,8 +56,6 @@ def register_error_handlers(app: Flask) -> None:
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
-    print("SQLALCHEMY_DATABASE_URI =", app.config["SQLALCHEMY_DATABASE_URI"])
-
     # ✅ Add this one line
     register_error_handlers(app)
 
@@ -78,11 +76,11 @@ def create_app():
         if hasattr(plugin, 'converter') and hasattr(plugin.converter, 'schema_name_resolver'):
             plugin.converter.schema_name_resolver = custom_schema_name_resolver
     
-    api.register_blueprint(barcode_blp)
-    api.register_blueprint(brands_blp)
-    api.register_blueprint(categories_blp)
-    api.register_blueprint(products_blp)
     api.register_blueprint(auth_blp)
+    api.register_blueprint(barcode_blp)
+    api.register_blueprint(categories_blp)
+    api.register_blueprint(brands_blp)
+    api.register_blueprint(products_blp)
     api.register_blueprint(reports_blp)
     # api.register_blueprint(search_blp)  # (delete if endpoint removed)
 

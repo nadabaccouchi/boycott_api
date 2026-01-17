@@ -25,12 +25,12 @@ class CategoryList(MethodView):
     @blp.arguments(CategoryCreateUpdateSchema())
     @blp.doc(security=[{"BearerAuth": []}])
     @blp.response(201, CategorySchema())
+    @auth_module.admin_required
     def post(self, data):
         """
         POST /categories
         Admin only.
         """
-        admin = auth_module.require_admin()
         category = Category(**data)
         db.session.add(category)
         try:
@@ -57,12 +57,12 @@ class CategoryDetail(MethodView):
     @blp.arguments(CategoryCreateUpdateSchema(partial=True))
     @blp.doc(security=[{"BearerAuth": []}])
     @blp.response(200, CategorySchema())
+    @auth_module.admin_required
     def put(self, data, category_id):
         """
         PUT /categories/{id}
         Admin only.
         """
-        admin = auth_module.require_admin()
         category = Category.query.get(category_id)
         if not category:
             abort(404, message="Category not found.")
@@ -79,12 +79,12 @@ class CategoryDetail(MethodView):
 
     # ✅ DELETE category (admin later)
     @blp.doc(security=[{"BearerAuth": []}])
+    @auth_module.admin_required
     def delete(self, category_id):
         """
         DELETE /categories/{id}
         Admin only.
         """
-        admin = auth_module.require_admin()
         category = Category.query.get(category_id)
         if not category:
             abort(404, message="Category not found.")

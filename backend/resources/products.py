@@ -134,12 +134,12 @@ class ProductList(MethodView):
     @blp.arguments(ProductCreateUpdateSchema())
     @blp.doc(security=[{"BearerAuth": []}])
     @blp.response(201, ProductSchema())
+    @auth_module.admin_required
     def post(self, data):
         """
         POST /products
         Admin only.
         """
-        admin = auth_module.require_admin()
 
         brand = Brand.query.get(data["brand_id"])
         if not brand:
@@ -182,12 +182,12 @@ class ProductDetail(MethodView):
     @blp.arguments(ProductCreateUpdateSchema(partial=True))
     @blp.doc(security=[{"BearerAuth": []}])
     @blp.response(200, ProductSchema())
+    @auth_module.admin_required
     def put(self, data, product_id):
         """
         PUT /products/{id}
         Admin only.
         """
-        admin = auth_module.require_admin()
 
         product = Product.query.get(product_id)
         if not product:
@@ -223,12 +223,12 @@ class ProductDetail(MethodView):
         return product
 
     @blp.doc(security=[{"BearerAuth": []}])
+    @auth_module.admin_required
     def delete(self, product_id):
         """
         DELETE /products/{id}
         Admin only.
         """
-        admin = auth_module.require_admin()
 
         product = Product.query.get(product_id)
         if not product:

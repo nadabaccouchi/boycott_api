@@ -2,7 +2,8 @@
 
 import jwt
 from datetime import datetime, timedelta
-from flask import request, current_app
+from functools import wraps
+from flask import current_app, g, request
 from flask_smorest import abort
 from models.user import User
 
@@ -90,3 +91,24 @@ def require_authenticated_user():
     Ensure the current user is authenticated.
     """
     return get_current_user()
+
+
+def login_required(fn):
+    @wraps(fn)
+    def wrapper(*args, **kwargs):
+        g.current_user = get_current_user()
+        return fn(*args, **kwargs)
+
+    return wrapper
+
+
+def admin_required(fn):
+    @wraps(fn)
+    def wrapper(*args, **kwargs):
+        user = get_current_user()
+        if user.role != "admin":
+            abort(403, message="Admin access required.")
+        g.current_user = user
+        return fn(*args, **kwargs)
+
+    return wrapper

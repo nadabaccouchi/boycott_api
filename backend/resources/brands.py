@@ -135,13 +135,12 @@ class BrandList(MethodView):
     @blp.arguments(BrandCreateUpdateSchema())
     @blp.doc(security=[{"BearerAuth": []}])
     @blp.response(201, BrandSchema())
+    @auth_module.admin_required
     def post(self, data):
         """
         POST /brands
         Admin only.
         """
-        admin = auth_module.require_admin()
-
         brand = Brand(**data)
         db.session.add(brand)
         try:
@@ -168,12 +167,12 @@ class BrandDetail(MethodView):
     @blp.arguments(BrandCreateUpdateSchema(partial=True))
     @blp.doc(security=[{"BearerAuth": []}])
     @blp.response(200, BrandSchema())
+    @auth_module.admin_required
     def put(self, data, brand_id):
         """
         PUT /brands/{id}
         Admin only.
         """
-        auth_module.require_admin()
         brand = Brand.query.get(brand_id)
         if not brand:
             abort(404, message="Brand not found.")
@@ -190,12 +189,12 @@ class BrandDetail(MethodView):
 
     # ✅ DELETE brand (admin later)
     @blp.doc(security=[{"BearerAuth": []}])
+    @auth_module.admin_required
     def delete(self, brand_id):
         """
         DELETE /brands/{id}
         Admin only.
         """
-        auth_module.require_admin()
         brand = Brand.query.get(brand_id)
         if not brand:
             abort(404, message="Brand not found.")

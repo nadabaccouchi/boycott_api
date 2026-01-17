@@ -61,6 +61,7 @@ class ProductSchema(Schema):
             raise ValidationError("Barcode length must be 8, 12, 13, or 14 digits.")
 
     brand = fields.Nested(BrandSchema, required=True)
+    description = fields.Str(allow_none=True, metadata={"example": "Local Tunisian alternative"})
     categories = fields.List(fields.Nested(CategorySchema), required=True)
 
 
@@ -94,6 +95,7 @@ class ProductCreateUpdateSchema(Schema):
     name = fields.Str(required=True, validate=validate.Length(min=1, max=200))
     barcode = fields.Str(required=True)
     brand_id = fields.Int(required=True)
+    description = fields.Str(allow_none=True)
     category_ids = fields.List(fields.Int(), required=False, load_default=[])
 
     @validates("barcode")

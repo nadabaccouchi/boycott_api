@@ -149,6 +149,7 @@ class ProductList(MethodView):
             name=data["name"],
             barcode=data["barcode"],
             brand=brand,
+            description=data.get("description"),
         )
 
         category_ids = data.get("category_ids", [])
@@ -204,6 +205,9 @@ class ProductDetail(MethodView):
 
         if "barcode" in data:
             product.barcode = data["barcode"]
+
+        if "description" in data:
+            product.description = data["description"]
 
         if "category_ids" in data:
             category_ids = data.get("category_ids") or []

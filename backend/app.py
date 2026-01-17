@@ -1,4 +1,6 @@
-from flask import Flask, jsonify
+import os
+
+from flask import Flask, jsonify, send_from_directory
 from flask_smorest import Api
 from werkzeug.exceptions import HTTPException
 
@@ -54,7 +56,10 @@ def register_error_handlers(app: Flask) -> None:
 
 
 def create_app():
-    app = Flask(__name__)
+    frontend_path = os.path.abspath(
+        os.path.join(os.path.dirname(__file__), "..", "frontend")
+    )
+    app = Flask(__name__, static_folder=frontend_path, static_url_path="/static")
     app.config.from_object(Config)
     # ✅ Add this one line
     register_error_handlers(app)
@@ -86,6 +91,10 @@ def create_app():
 
     @app.get("/")
     def home():
+        return send_from_directory(frontend_path, "index.html")
+
+    @app.get("/health")
+    def health():
         return {"message": "Boycott API Running!"}
 
     return app

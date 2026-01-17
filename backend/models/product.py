@@ -16,6 +16,8 @@ class Product(db.Model):
     brand_id = db.Column(db.Integer, db.ForeignKey("brands.id"), nullable=False)
     brand = db.relationship("Brand", back_populates="products")
 
+    description = db.Column(db.String(500), nullable=True)
+
     categories = db.relationship(
         "Category",
         secondary=product_category,

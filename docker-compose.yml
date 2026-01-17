@@ -3,7 +3,8 @@ services:
   db:
     image: postgres:15
     environment:
-      POSTGRES_DB: incivility_reports
+      POSTGRES_DB: BOYCOTT
+      POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     ports:
       - "5432:5432"
@@ -17,7 +18,8 @@ services:
     depends_on:
       - db
     environment:
-      DATABASE_URL: postgresql://postgres:postgres@db:5432/incivility_reports
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/BOYCOTT
+      SECRET_KEY: dev-secret-key
 
 volumes:
   postgres_data:

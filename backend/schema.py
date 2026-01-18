@@ -1,4 +1,6 @@
 # FILE: schemas.py
+from decimal import Decimal, InvalidOperation
+
 from marshmallow import Schema, fields, validates, validates_schema, ValidationError, validate
 
 # Common validators
@@ -50,15 +52,27 @@ class ProductSchema(Schema):
         metadata={"example": "Coca-Cola Classic"},
     )
 
-    # Keep barcode as string (good because barcodes can start with 0)
-    barcode = fields.Str(required=True, metadata={"example": "6194002400707"})
+    # Serialize barcodes as plain digits (avoid scientific notation from DB types)
+    barcode = fields.Method("get_barcode", dump_only=True, metadata={"example": "6194002400707"})
 
-    @validates("barcode")
-    def validate_barcode(self, value):
-        if not value.isdigit():
-            raise ValidationError("Barcode must contain only digits.")
-        if len(value) not in (8, 12, 13, 14):
-            raise ValidationError("Barcode length must be 8, 12, 13, or 14 digits.")
+    def get_barcode(self, obj):
+        value = getattr(obj, "barcode", None)
+        if value is None:
+            return None
+        s = str(value).strip()
+        s = "".join(s.split())
+        s = s.replace(",", "").replace("_", "")
+        if s.isdigit():
+            return s
+        if ("e" in s.lower()) or ("." in s):
+            try:
+                d = Decimal(s)
+            except (InvalidOperation, ValueError):
+                return str(value)
+            if d != d.to_integral_value():
+                return str(value)
+            return format(d.to_integral_value(), "f")
+        return str(value)
 
     brand = fields.Nested(BrandSchema, required=True)
     description = fields.Str(allow_none=True, metadata={"example": "Local Tunisian alternative"})
@@ -100,9 +114,21 @@ class ProductCreateUpdateSchema(Schema):
 
     @validates("barcode")
     def validate_barcode(self, value):
-        if not value.isdigit():
-            raise ValidationError("Barcode must contain only digits.")
-        if len(value) not in (8, 12, 13, 14):
+        s = value.strip()
+        s = "".join(s.split())
+        s = s.replace(",", "").replace("_", "")
+        if not s.isdigit():
+            if ("e" in s.lower()) or ("." in s):
+                try:
+                    d = Decimal(s)
+                except (InvalidOperation, ValueError):
+                    raise ValidationError("Barcode must contain only digits.")
+                if d != d.to_integral_value():
+                    raise ValidationError("Barcode must contain only digits.")
+                s = format(d.to_integral_value(), "f")
+            else:
+                raise ValidationError("Barcode must contain only digits.")
+        if len(s) not in (8, 12, 13, 14):
             raise ValidationError("Barcode length must be 8, 12, 13, or 14 digits.")
 
 

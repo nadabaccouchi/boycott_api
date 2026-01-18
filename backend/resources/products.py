@@ -1,6 +1,10 @@
+from decimal import Decimal, InvalidOperation
+from urllib.parse import unquote
+
 from flask.views import MethodView
 from flask_smorest import Blueprint, abort
 from flask import request
+from sqlalchemy import cast, Numeric
 from sqlalchemy import asc, desc
 from sqlalchemy.exc import IntegrityError
 
@@ -15,11 +19,45 @@ import auth_utils as auth_module
 blp = Blueprint("Products", __name__, description="Products endpoints")
 
 
-def validate_barcode_or_400(barcode: str) -> None:
-    if not barcode.isdigit():
+def normalize_barcode_or_400(raw: str) -> str:
+    s = raw if raw is not None else ""
+    s = unquote(s)
+    s = s.strip()
+    s = "".join(s.split())
+
+    s = s.replace(",", "").replace("_", "")
+
+    if s.isdigit():
+        if len(s) not in (8, 12, 13, 14):
+            abort(400, message="Invalid barcode length: must be 8, 12, 13, or 14 digits.")
+        return s
+
+    if ("e" in s.lower()) or ("." in s):
+        try:
+            d = Decimal(s)
+            if d != d.to_integral_value():
+                abort(400, message="Invalid barcode format: must be an integer.")
+            d = d.to_integral_value()
+            s = format(d, "f")
+        except (InvalidOperation, ValueError):
+            abort(400, message="Invalid barcode format: digits only.")
+    else:
         abort(400, message="Invalid barcode format: digits only.")
-    if len(barcode) not in (8, 12, 13, 14):
+
+    if not s.isdigit():
+        abort(400, message="Invalid barcode format: digits only.")
+    if len(s) not in (8, 12, 13, 14):
         abort(400, message="Invalid barcode length: must be 8, 12, 13, or 14 digits.")
+
+    return s
+
+
+def clean_barcode_input(raw: str) -> str:
+    s = raw if raw is not None else ""
+    s = unquote(s)
+    s = s.strip()
+    s = "".join(s.split())
+    return s.replace(",", "").replace("_", "")
 
 
 @blp.route("/products")
@@ -147,7 +185,7 @@ class ProductList(MethodView):
 
         product = Product(
             name=data["name"],
-            barcode=data["barcode"],
+            barcode=normalize_barcode_or_400(data["barcode"]),
             brand=brand,
             description=data.get("description"),
         )
@@ -204,7 +242,7 @@ class ProductDetail(MethodView):
             product.name = data["name"]
 
         if "barcode" in data:
-            product.barcode = data["barcode"]
+            product.barcode = normalize_barcode_or_400(data["barcode"])
 
         if "description" in data:
             product.description = data["description"]
@@ -242,13 +280,19 @@ class ProductDetail(MethodView):
         return {"message": "Product deleted."}, 200
 
 
-@blp.route("/products/<string:barcode>/alternatives")
+@blp.route("/products/<path:barcode>/alternatives")
 class ProductBrandAlternatives(MethodView):
     @blp.response(200, BrandSchema(many=True))
     def get(self, barcode):
-        validate_barcode_or_400(barcode)
+        raw_clean = clean_barcode_input(barcode)
+        product = Product.query.filter_by(barcode=raw_clean).first()
 
-        product = Product.query.filter_by(barcode=barcode).first()
+        if not product:
+            barcode = normalize_barcode_or_400(raw_clean)
+            product = Product.query.filter(
+                (Product.barcode.in_([barcode, raw_clean]))
+                | (cast(Product.barcode, Numeric) == int(barcode))
+            ).first()
         if not product:
             abort(404, message="Product not found.")
 
